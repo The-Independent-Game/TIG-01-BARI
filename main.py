@@ -1,52 +1,72 @@
-from machine import Pin, PWM
+import time
+import machine
 import time
 import neopixel
 
+def play_tone(frequency, duration):
+    buzzer.freq(frequency)
+    buzzer.duty_u16(32768)  
+    time.sleep(duration)
+    buzzer.duty_u16(0)
+
+buzzer = machine.PWM(machine.Pin(9))
+button_blue = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
+button_yellow = machine.Pin(5, machine.Pin.IN, machine.Pin.PULL_UP)
+led_blue = machine.Pin(11, machine.Pin.OUT)
+led_yellow = machine.Pin(10, machine.Pin.OUT)
 NUM_LEDS = 8
 
-np = neopixel.NeoPixel(machine.Pin(26), NUM_LEDS)
-led_green = Pin(28, Pin.OUT)
-led_red = Pin(22, Pin.OUT)
-button_green = Pin(27, Pin.IN, Pin.PULL_UP)
-button_red = Pin(21, Pin.IN, Pin.PULL_UP)
-buzzer = PWM(Pin(16))  
+np = neopixel.NeoPixel(machine.Pin(8), NUM_LEDS)
+
+
+button_blue_pressed = False
+button_yellow_pressed = False
 
 def set_color(r, g, b):
     for i in range(NUM_LEDS):
-        np[i] = (r, g, b)  # Imposta il colore RGB per ogni LED
-    np.write()  # Aggiorna la striscia
+        np[i] = (r, g, b)  
+    np.write()  
 
-#striscia led spenta
 set_color(0,0,0)
 
-def play_tone(frequency, duration):
-    if frequency > 0:
-        buzzer.freq(frequency)
-        buzzer.duty_u16(32767)  # 50% duty cycle
-    else:
-        buzzer.duty_u16(0)  # Disattiva il suono
-    
-    time.sleep(duration)
-    buzzer.duty_u16(0)  # Ferma il suono
+def button_handler(pin):
+    global button_blue_pressed
+    global button_yellow_pressed
+    global button_green_pressed
+    global button_red_pressed
+
+    if pin == button_blue:
+        button_blue_pressed = True
+    elif pin == button_yellow:
+        button_yellow_pressed = True
+
+
+button_blue.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_handler)
+button_yellow.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_handler)
+
 
 while True:
-    '''
-    set_color(255, 0, 0)  # Rosso
-    time.sleep(1)
-    set_color(0, 255, 0)  # Verde
-    time.sleep(1)
-    set_color(0, 0, 255)  # Blu
-    time.sleep(1)
-    '''
-    if button_green.value() == 0:  # pull-up -> 0 indica pressione
-        led_green.value(1)
-        play_tone(262,0.2)
-    else:
-        led_green.value(0)
+    if button_blue_pressed:
+        led_blue.on()
+        set_color(0, 0, 255)
+        play_tone(300, 0.5)
+        button_blue_pressed = False
+        time.sleep(0.5)
+        set_color(0,0,0)
+        led_blue.off()
         
-    if button_red.value() == 0:
-        led_red.value(1)
-        play_tone(300,0.2)
-    else:
-        led_red.value(0)
+    if button_yellow_pressed:
+        led_yellow.on()
+        set_color(255, 255, 0)
+        play_tone(600, 0.5)
+        button_yellow_pressed = False
+        time.sleep(0.5)
+        set_color(0, 0, 0)
+        led_yellow.off()
+    
         
+    
+    time.sleep(0.1)
+
+
+
