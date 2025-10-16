@@ -53,6 +53,7 @@ class TIG01:
         self.sound = False
         self.mid_ball_position = self.NUM_LEDS // 2
         self.level = 0
+        self.tone_end_time = 0
 
         # Musical tones for idle animation
         self.tones = [261, 277, 294, 311, 330, 349, 370, 392, 415, 440]
@@ -120,8 +121,15 @@ class TIG01:
                 self.button_press_states &= ~(1 << i)
 
     def tone(self, frequency, duration_ms):
-        """Play tone on buzzer"""
-        if self.sound :
+        """Play tone on buzzer (non-blocking)"""
+        if self.sound and frequency > 0:
+            self.buzzer.freq(frequency)
+            self.buzzer.duty_u16(32768)
+            self.tone_end_time = self.timer + duration_ms
+
+    def tone_blocking(self, frequency, duration_ms):
+        """Play tone on buzzer (blocking - for victory music)"""
+        if self.sound:
             if frequency > 0:
                 self.buzzer.freq(frequency)
                 self.buzzer.duty_u16(32768)
@@ -159,8 +167,8 @@ class TIG01:
                 note_duration = wholenote // abs(divider)
                 note_duration = int(note_duration * 1.5)
 
-            self.tone(note, int(note_duration * 0.9))
-        
+            self.tone_blocking(note, int(note_duration * 0.9))
+
             i += 2
 
         self.stop_button_leds()
@@ -218,11 +226,11 @@ class TIG01:
         self.level = 1
 
     def player_sound(self, direction):
-        """Play kick sound"""
+        """Play kick sound (non-blocking)"""
         if direction == self.KICK_0_1:
-            self.tone(400, 400)
+            self.tone(400, 100)
         else:
-            self.tone(700, 400)
+            self.tone(700, 100)
 
     def ball_led_encoding(self, position, direction):
         """Encode ball LED position based on direction"""
@@ -312,6 +320,11 @@ class TIG01:
         """Main game loop"""
         self.read_buttons()
         self.timer = self.millis()
+
+        # Check if tone should stop (non-blocking tone management)
+        if self.tone_end_time > 0 and self.timer >= self.tone_end_time:
+            self.no_tone()
+            self.tone_end_time = 0
 
         if self.game_state == self.IDLE:
             # Random idle animation (rare)
