@@ -50,7 +50,7 @@ class TIG01:
         self.kick_time = 0
         self.ball_speed = self.MAX_DELAY_VEL
         self.animation_button = 0
-        self.sound = False
+        self.sound = True
         self.mid_ball_position = self.NUM_LEDS // 2
         self.level = 0
         self.tone_end_time = 0
@@ -318,40 +318,44 @@ class TIG01:
 
     def loop(self):
         """Main game loop"""
-        self.read_buttons()
-        self.timer = self.millis()
+        try:
+            self.read_buttons()
+            self.timer = self.millis()
 
-        # Check if tone should stop (non-blocking tone management)
-        if self.tone_end_time > 0 and self.timer >= self.tone_end_time:
-            self.no_tone()
-            self.tone_end_time = 0
+            # Check if tone should stop (non-blocking tone management)
+            if self.tone_end_time > 0 and self.timer >= self.tone_end_time:
+                self.no_tone()
+                self.tone_end_time = 0
 
-        if self.game_state == self.IDLE:
-            # Random idle animation (rare)
-            if random.randint(0, 400000) == 0:
-                self.all_on()
-                self.tone(random.choice(self.tones), 500)
-                self.stop_button_leds()
-            else:
-                # Regular animation
-                if time.ticks_diff(self.timer, self.animation_time) >= 500:
-                    self.rotate_animation()
-                    self.animation_time = self.millis()
+            if self.game_state == self.IDLE:
+                # Random idle animation (rare)
+                if random.randint(0, 400000) == 0:
+                    self.all_on()
+                    self.tone(random.choice(self.tones), 500)
+                    self.stop_button_leds()
+                else:
+                    # Regular animation
+                    if time.ticks_diff(self.timer, self.animation_time) >= 500:
+                        self.rotate_animation()
+                        self.animation_time = self.millis()
 
-            # Check for first kick
-            if self.is_button_pressed(0):
-                self.first_kick(self.KICK_0_1)
-            elif self.is_button_pressed(1):
-                self.first_kick(self.KICK_1_0)
+                # Check for first kick
+                if self.is_button_pressed(0):
+                    self.first_kick(self.KICK_0_1)
+                elif self.is_button_pressed(1):
+                    self.first_kick(self.KICK_1_0)
 
-        elif self.game_state == self.KICK_0_1:
-            self.ball_move_on(self.KICK_0_1)
-            self.opponent_responds(self.KICK_0_1)
+            elif self.game_state == self.KICK_0_1:
+                self.ball_move_on(self.KICK_0_1)
+                self.opponent_responds(self.KICK_0_1)
 
-        elif self.game_state == self.KICK_1_0:
-            self.ball_move_on(self.KICK_1_0)
-            self.opponent_responds(self.KICK_1_0)
-
+            elif self.game_state == self.KICK_1_0:
+                self.ball_move_on(self.KICK_1_0)
+                self.opponent_responds(self.KICK_1_0)
+        except Exception as e:
+            print(f"ERRORE nel loop: {type(e).__name__}: {e}")
+            print(f"Game state: {self.game_state}, Ball pos: {self.ball_position}")
+            
     def start(self):
         """Main game entry point"""
         print("Pong Game Starting...")
