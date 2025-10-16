@@ -26,7 +26,8 @@ class TIG01:
 
     # Constants
     MAX_DELAY_VEL = 300
-    MAX_LEVEL = 15
+    MAX_LEVEL = 12
+    BALL_MAX_BRIGHTNESS = 40  # Maximum LED brightness during ball movement (0-255)
     WIN_BRIGHTNESS = 10  # LED brightness when a player wins (0-255)
 
     def __init__(self):
@@ -190,7 +191,7 @@ class TIG01:
         self.player_music_wins(melody)
 
     def player0_music_wins(self):
-        """Player 0 (Blue) victory music"""
+        """Player 0 (Red) victory music"""
         melody = [
             self.NOTE_C4, -8, self.NOTE_E4, 16, self.NOTE_G4, 8, self.NOTE_C5, 8,
             self.NOTE_E5, 8, self.NOTE_D5, 8, self.NOTE_C5, 8, self.NOTE_A4, 8,
@@ -253,11 +254,11 @@ class TIG01:
 
         if position == self.mid_ball_position:
             # Green at midpoint
-            g = self.map_value(self.level, 1, self.MAX_LEVEL, 20, 255)
+            g = self.map_value(self.level, 1, self.MAX_LEVEL, 20, self.BALL_MAX_BRIGHTNESS)
             self.np[led_index] = (0, g, 0)
         else:
             # Red elsewhere
-            r = self.map_value(self.level, 1, self.MAX_LEVEL, 20, 255)
+            r = self.map_value(self.level, 1, self.MAX_LEVEL, 20, self.BALL_MAX_BRIGHTNESS)
             self.np[led_index] = (r, 0, 0)
 
     def first_kick(self, direction):
@@ -316,9 +317,9 @@ class TIG01:
                     self.ball_position,
                     self.mid_ball_position + 1,
                     self.NUM_LEDS - 1,
-                    300, 100
+                    250, 90
                 )
-                self.ball_speed -= self.map_value(self.level, 1, self.MAX_LEVEL, 0, 70)
+                self.ball_speed -= self.map_value(self.level, 1, self.MAX_LEVEL, 0, 80)
 
                 # Switch direction
                 self.game_state = self.KICK_1_0 if direction == self.KICK_0_1 else self.KICK_0_1
