@@ -27,6 +27,7 @@ class TIG01:
     # Constants
     MAX_DELAY_VEL = 300
     MAX_LEVEL = 15
+    WIN_BRIGHTNESS = 10  # LED brightness when a player wins (0-255)
 
     def __init__(self):
         """Inizializza l'hardware e le configurazioni del gioco Pong"""
@@ -51,7 +52,7 @@ class TIG01:
         self.kick_time = 0
         self.ball_speed = self.MAX_DELAY_VEL
         self.animation_button = 0
-        self.sound = True
+        self.sound = False
         self.mid_ball_position = self.NUM_LEDS // 2
         self.level = 0
         self.tone_end_time = 0
@@ -75,6 +76,8 @@ class TIG01:
         """Map value from one range to another"""
         return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
+    # 0 Yellow
+    # 1 Red
     def is_button_pressed(self, button):
         """Check if button bit is set"""
         return (self.button_press_states >> button) & 1
@@ -203,11 +206,11 @@ class TIG01:
         # Light winner button
         self.button_led_on(0 if gs == self.KICK_0_1 else 1)
 
-        # Set all LEDs to winner color (RGB format)
+        # Set all LEDs to winner color (RGB format) with reduced brightness
         if gs == self.KICK_1_0:
-            color = (255, 0, 0)    # Red
+            color = (self.WIN_BRIGHTNESS, 0, 0)    # Red (dim)
         else:
-            color = (255, 255, 0)  # Yellow
+            color = (self.WIN_BRIGHTNESS, self.WIN_BRIGHTNESS, 0)  # Yellow (dim)
         
 
         for i in range(self.NUM_LEDS):
@@ -364,6 +367,15 @@ class TIG01:
     def start(self):
         """Main game entry point"""
         print("Pong Game Starting...")
+
+        #Press yellow to Enable SOUND 
+        if not self.button_red.value(): # and self.is_button_pressed(1):
+            print("sound ON")
+            self.sound = True
+            self.tone_blocking(self.NOTE_A4, 200)
+            time.sleep(2);
+
+
         loop_counter = 0
         try:
             while True:
