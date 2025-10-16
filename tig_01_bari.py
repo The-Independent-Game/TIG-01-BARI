@@ -2,6 +2,7 @@ import time
 import machine
 import neopixel
 import random
+import gc
 
 
 class TIG01:
@@ -123,6 +124,8 @@ class TIG01:
     def tone(self, frequency, duration_ms):
         """Play tone on buzzer (non-blocking)"""
         if self.sound and frequency > 0:
+            # Validate frequency range (typical PWM range: 20Hz - 20kHz)
+            frequency = max(20, min(20000, frequency))
             self.buzzer.freq(frequency)
             self.buzzer.duty_u16(32768)
             self.tone_end_time = self.timer + duration_ms
@@ -131,6 +134,8 @@ class TIG01:
         """Play tone on buzzer (blocking - for victory music)"""
         if self.sound:
             if frequency > 0:
+                # Validate frequency range (typical PWM range: 20Hz - 20kHz)
+                frequency = max(20, min(20000, frequency))
                 self.buzzer.freq(frequency)
                 self.buzzer.duty_u16(32768)
                 time.sleep_ms(duration_ms)
@@ -271,7 +276,7 @@ class TIG01:
 
     def ball_move_on(self, direction):
         """Move ball forward"""
-        if self.timer - self.last_time_ball_position > self.ball_speed:
+        if time.ticks_diff(self.timer, self.last_time_ball_position) > self.ball_speed:
             self.ball_position += 1
             self.last_time_ball_position = self.timer
 
@@ -284,7 +289,7 @@ class TIG01:
 
     def opponent_responds(self, direction):
         """Handle opponent button press"""
-        if self.timer - self.kick_time > 200:
+        if time.ticks_diff(self.timer, self.kick_time) > 200:
             self.stop_button_leds()
 
         button = 1 if direction == self.KICK_0_1 else 0
@@ -323,13 +328,13 @@ class TIG01:
             self.timer = self.millis()
 
             # Check if tone should stop (non-blocking tone management)
-            if self.tone_end_time > 0 and self.timer >= self.tone_end_time:
+            if self.tone_end_time > 0 and time.ticks_diff(self.timer, self.tone_end_time) >= 0:
                 self.no_tone()
                 self.tone_end_time = 0
 
             if self.game_state == self.IDLE:
-                # Random idle animation (rare)
-                if random.randint(0, 400000) == 0:
+                # Random idle animation (rare) - reduced range for stability
+                if random.randint(0, 10000) == 0:
                     self.all_on()
                     self.tone(random.choice(self.tones), 500)
                     self.stop_button_leds()
@@ -359,10 +364,17 @@ class TIG01:
     def start(self):
         """Main game entry point"""
         print("Pong Game Starting...")
+        loop_counter = 0
         try:
             while True:
                 self.loop()
                 time.sleep_ms(5)  # Small delay for stability
+
+                # Periodic garbage collection every ~10 seconds
+                loop_counter += 1
+                if loop_counter >= 2000:  # ~10s at 5ms per loop
+                    gc.collect()
+                    loop_counter = 0
         except KeyboardInterrupt:
             print("\nGame stopped")
             self.stop_ball()
