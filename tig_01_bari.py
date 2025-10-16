@@ -317,9 +317,9 @@ class TIG01:
                     self.ball_position,
                     self.mid_ball_position + 1,
                     self.NUM_LEDS - 1,
-                    250, 90
+                    300, 100
                 )
-                self.ball_speed -= self.map_value(self.level, 1, self.MAX_LEVEL, 0, 80)
+                self.ball_speed -= self.map_value(self.level, 1, self.MAX_LEVEL, 0, 70)
 
                 # Switch direction
                 self.game_state = self.KICK_1_0 if direction == self.KICK_0_1 else self.KICK_0_1
