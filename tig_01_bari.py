@@ -26,13 +26,14 @@ class TIG01:
     # Constants
     MAX_DELAY_VEL = 300
     MAX_LEVEL = 15
+
     def __init__(self):
         """Inizializza l'hardware e le configurazioni del gioco Pong"""
         # Hardware pins - adapted to existing TIG01 hardware
         self.buzzer = machine.PWM(machine.Pin(9))
-        self.button_blue = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
+        self.button_red = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
         self.button_yellow = machine.Pin(5, machine.Pin.IN, machine.Pin.PULL_UP)
-        self.led_blue = machine.Pin(11, machine.Pin.OUT)
+        self.led_red = machine.Pin(11, machine.Pin.OUT)
         self.led_yellow = machine.Pin(10, machine.Pin.OUT)
         self.NUM_LEDS = 8
 
@@ -49,7 +50,7 @@ class TIG01:
         self.kick_time = 0
         self.ball_speed = self.MAX_DELAY_VEL
         self.animation_button = 0
-        self.sound = True
+        self.sound = False
         self.mid_ball_position = self.NUM_LEDS // 2
         self.level = 0
 
@@ -78,22 +79,22 @@ class TIG01:
 
     def stop_button_leds(self):
         """Turn off all button LEDs"""
-        self.led_blue.off()
+        self.led_red.off()
         self.led_yellow.off()
         self.no_tone()
 
     def button_led_on(self, led_index):
         """Turn on specific button LED"""
         if led_index == 0:
-            self.led_blue.on()
+            self.led_red.on()
             self.led_yellow.off()
         else:
-            self.led_blue.off()
+            self.led_red.off()
             self.led_yellow.on()
 
     def all_on(self):
         """Turn on all button LEDs"""
-        self.led_blue.on()
+        self.led_red.on()
         self.led_yellow.on()
 
     def stop_ball(self):
@@ -104,7 +105,7 @@ class TIG01:
 
     def read_buttons(self):
         """Read button states with debouncing (active low - PULL_UP)"""
-        buttons = [self.button_blue, self.button_yellow]
+        buttons = [self.button_red, self.button_yellow]
 
         for i in range(len(buttons)):
             # Button pressed when value is 0 (PULL_UP)
@@ -120,11 +121,14 @@ class TIG01:
 
     def tone(self, frequency, duration_ms):
         """Play tone on buzzer"""
-        if frequency > 0:
-            self.buzzer.freq(frequency)
-            self.buzzer.duty_u16(32768)
+        if self.sound :
+            if frequency > 0:
+                self.buzzer.freq(frequency)
+                self.buzzer.duty_u16(32768)
+                time.sleep_ms(duration_ms)
+            self.no_tone()
+        else:
             time.sleep_ms(duration_ms)
-        self.no_tone()
 
     def no_tone(self):
         """Stop buzzer"""
@@ -155,12 +159,8 @@ class TIG01:
                 note_duration = wholenote // abs(divider)
                 note_duration = int(note_duration * 1.5)
 
-            if self.sound and note > 0:
-                self.tone(note, int(note_duration * 0.9))
-            else:
-                time.sleep_ms(note_duration)
-
-            self.no_tone()
+            self.tone(note, int(note_duration * 0.9))
+        
             i += 2
 
         self.stop_button_leds()
@@ -192,9 +192,10 @@ class TIG01:
 
         # Set all LEDs to winner color (RGB format)
         if gs == self.KICK_1_0:
-            color = (255, 255, 0)  # Yellow
+            color = (255, 0, 0)    # Red
         else:
-            color = (0, 0, 255)    # Blue
+            color = (255, 255, 0)  # Yellow
+        
 
         for i in range(self.NUM_LEDS):
             self.np[i] = color
@@ -218,11 +219,10 @@ class TIG01:
 
     def player_sound(self, direction):
         """Play kick sound"""
-        if self.sound:
-            if direction == self.KICK_0_1:
-                self.tone(400, 400)
-            else:
-                self.tone(700, 400)
+        if direction == self.KICK_0_1:
+            self.tone(400, 400)
+        else:
+            self.tone(700, 400)
 
     def ball_led_encoding(self, position, direction):
         """Encode ball LED position based on direction"""
@@ -317,11 +317,7 @@ class TIG01:
             # Random idle animation (rare)
             if random.randint(0, 400000) == 0:
                 self.all_on()
-                if self.sound:
-                    self.tone(random.choice(self.tones), 500)
-                else:
-                    time.sleep_ms(500)
-                self.no_tone()
+                self.tone(random.choice(self.tones), 500)
                 self.stop_button_leds()
             else:
                 # Regular animation
