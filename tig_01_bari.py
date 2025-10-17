@@ -27,8 +27,8 @@ class TIG01:
     # Constants
     MAX_DELAY_VEL = 300
     MAX_LEVEL = 12
-    BALL_MAX_BRIGHTNESS = 40  # Maximum LED brightness during ball movement (0-255)
-    WIN_BRIGHTNESS = 10  # LED brightness when a player wins (0-255)
+    BALL_MAX_BRIGHTNESS = 100  # Maximum LED brightness during ball movement (0-255)
+    WIN_BRIGHTNESS = 100  # LED brightness when a player wins (0-255)
 
     def __init__(self):
         """Inizializza l'hardware e le configurazioni del gioco Pong"""
