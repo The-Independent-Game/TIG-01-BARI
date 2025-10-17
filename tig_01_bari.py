@@ -53,7 +53,7 @@ class TIG01:
         self.kick_time = 0
         self.ball_speed = self.MAX_DELAY_VEL
         self.animation_button = 0
-        self.sound = False
+        self.sound = True
         self.mid_ball_position = self.NUM_LEDS // 2
         self.level = 0
         self.tone_end_time = 0
@@ -369,10 +369,10 @@ class TIG01:
         """Main game entry point"""
         print("Pong Game Starting...")
 
-        #Press yellow to Enable SOUND 
+        #Press yellow to switch SOUND 
         if not self.button_red.value(): # and self.is_button_pressed(1):
             print("sound ON")
-            self.sound = True
+            self.sound = not self.sound
             self.tone_blocking(self.NOTE_A4, 200)
             time.sleep(2);
 
