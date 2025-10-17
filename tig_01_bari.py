@@ -373,12 +373,13 @@ class TIG01:
         if not self.button_red.value(): # and self.is_button_pressed(1):
             print("sound ON")
             self.sound = not self.sound
-            self.tone_blocking(self.NOTE_A4, 200)
+            self.tone_blocking(self.NOTE_A4, 400)
             time.sleep(2);
 
 
         loop_counter = 0
         try:
+            self.tone_blocking(self.NOTE_A4, 400)
             while True:
                 self.loop()
                 time.sleep_ms(5)  # Small delay for stability
