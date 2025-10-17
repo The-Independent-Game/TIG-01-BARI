@@ -395,7 +395,7 @@ class TIG01:
             self.stop_button_leds()
 
 
-def start():
+def start(online_mode):
     try:
         game = TIG01()
         game.start()
