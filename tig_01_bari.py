@@ -67,8 +67,7 @@ class TIG01:
         self.stop_ball()
         self.ball_speed = self.MAX_DELAY_VEL
 
-        print("Pong Game Ready - TIG01")
-
+    
     def millis(self):
         """Return milliseconds since start"""
         return time.ticks_ms()
