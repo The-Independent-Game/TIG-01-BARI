@@ -38,7 +38,7 @@ class TIG01:
         self.button_yellow = machine.Pin(5, machine.Pin.IN, machine.Pin.PULL_UP)
         self.led_red = machine.Pin(11, machine.Pin.OUT)
         self.led_yellow = machine.Pin(10, machine.Pin.OUT)
-        self.NUM_LEDS = 8
+        self.NUM_LEDS = 9
 
         self.np = neopixel.NeoPixel(machine.Pin(8), self.NUM_LEDS)
 
